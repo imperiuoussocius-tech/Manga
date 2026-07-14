@@ -1,4 +1,4 @@
-const state = { filter: 'all', selectedSlug: null, catalog: [] };
+const state = { filter: 'all', selectedSlug: null, catalog: [], readerOpen: false, activeChapter: null };
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -33,6 +33,10 @@ function renderDetail(entry) {
   document.getElementById('exportButton').disabled = false;
   document.getElementById('exportButton').dataset.slug = entry.slug;
   document.getElementById('exportButton').dataset.chapter = entry.chapters[0]?.id || 'chapter-001';
+  document.getElementById('downloadButton').disabled = false;
+  document.getElementById('downloadButton').dataset.slug = entry.slug;
+  document.getElementById('downloadButton').dataset.chapter = entry.chapters[0]?.id || 'chapter-001';
+  state.activeChapter = entry.chapters[0]?.id || 'chapter-001';
 
   const chapterList = document.getElementById('chapterList');
   chapterList.innerHTML = entry.chapters.map((chapter) => `
@@ -65,10 +69,15 @@ async function selectEntry(slug) {
 
 function renderImages(images) {
   const imageGrid = document.getElementById('imageGrid');
+  const readerFrame = document.getElementById('readerFrame');
   imageGrid.innerHTML = images.map((image) => `<img src="${image.src}" alt="${image.alt}" />`).join('');
+  readerFrame.innerHTML = images.map((image) => `<img src="${image.src}" alt="${image.alt}" />`).join('');
 }
 
 async function openChapter(slug, chapterId) {
+  state.activeChapter = chapterId;
+  document.getElementById('exportButton').dataset.chapter = chapterId;
+  document.getElementById('downloadButton').dataset.chapter = chapterId;
   const data = await fetchJson(`/api/chapter/${slug}/${chapterId}`);
   renderImages(data.images);
 }
@@ -93,6 +102,14 @@ async function exportZip() {
   window.location.href = result.downloadUrl;
 }
 
+function toggleReader() {
+  const readerFrame = document.getElementById('readerFrame');
+  state.readerOpen = !state.readerOpen;
+  readerFrame.classList.toggle('active', state.readerOpen);
+  const button = document.getElementById('readerModeButton');
+  button.textContent = state.readerOpen ? 'Hide onsite reader' : 'Open onsite reader';
+}
+
 document.getElementById('refreshButton').addEventListener('click', refreshCatalog);
 document.getElementById('searchInput').addEventListener('input', () => loadCatalog());
 document.querySelectorAll('.filter').forEach((button) => {
@@ -114,6 +131,8 @@ document.getElementById('chapterList').addEventListener('click', (event) => {
   openChapter(target.dataset.slug, target.dataset.chapter);
 });
 document.getElementById('exportButton').addEventListener('click', exportZip);
+document.getElementById('downloadButton').addEventListener('click', exportZip);
+document.getElementById('readerModeButton').addEventListener('click', toggleReader);
 
 loadCatalog().catch((error) => {
   document.getElementById('statusText').textContent = error.message;
