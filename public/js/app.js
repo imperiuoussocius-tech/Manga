@@ -9,10 +9,10 @@ function buildLocalCatalog() {
       source: 'Local demo',
       description: 'A polished sample title with an onsite reader and CBZ-style download.',
       cover: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80',
-      url: 'https://example.com/solo-leveling',
+      url: 'https://www.webtoons.com/en/fantasy/solo-leveling/list?title_no=1',
       chapters: [
-        { id: 'chapter-001', title: 'Chapter 001', url: 'https://example.com/solo-leveling/chapter-001' },
-        { id: 'chapter-002', title: 'Chapter 002', url: 'https://example.com/solo-leveling/chapter-002' }
+        { id: 'chapter-001', title: 'Chapter 001', url: 'https://www.webtoons.com/en/fantasy/solo-leveling/list?title_no=1' },
+        { id: 'chapter-002', title: 'Chapter 002', url: 'https://www.webtoons.com/en/fantasy/solo-leveling/list?title_no=1' }
       ]
     },
     {
@@ -22,10 +22,10 @@ function buildLocalCatalog() {
       source: 'Local demo',
       description: 'Classic adventure manga in a lightweight GitHub Pages-friendly layout.',
       cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80',
-      url: 'https://example.com/one-piece',
+      url: 'https://www.viz.com/shonenjump/chapters/one-piece',
       chapters: [
-        { id: 'chapter-001', title: 'Chapter 001', url: 'https://example.com/one-piece/chapter-001' },
-        { id: 'chapter-002', title: 'Chapter 002', url: 'https://example.com/one-piece/chapter-002' }
+        { id: 'chapter-001', title: 'Chapter 001', url: 'https://www.viz.com/shonenjump/chapters/one-piece' },
+        { id: 'chapter-002', title: 'Chapter 002', url: 'https://www.viz.com/shonenjump/chapters/one-piece' }
       ]
     },
     {
@@ -35,10 +35,10 @@ function buildLocalCatalog() {
       source: 'Local demo',
       description: 'A fantasy title that demonstrates the same reader experience on GitHub Pages.',
       cover: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80',
-      url: 'https://example.com/the-beginning-after-the-end',
+      url: 'https://www.webtoons.com/en/fantasy/the-beginning-after-the-end/list?title_no=1',
       chapters: [
-        { id: 'chapter-001', title: 'Chapter 001', url: 'https://example.com/the-beginning-after-the-end/chapter-001' },
-        { id: 'chapter-002', title: 'Chapter 002', url: 'https://example.com/the-beginning-after-the-end/chapter-002' }
+        { id: 'chapter-001', title: 'Chapter 001', url: 'https://www.webtoons.com/en/fantasy/the-beginning-after-the-end/list?title_no=1' },
+        { id: 'chapter-002', title: 'Chapter 002', url: 'https://www.webtoons.com/en/fantasy/the-beginning-after-the-end/list?title_no=1' }
       ]
     }
   ];
@@ -168,7 +168,7 @@ async function exportZip() {
     window.location.href = remoteResult.downloadUrl;
     return;
   }
-  window.location.href = '/assets/sample.cbz';
+  window.location.href = '/public/assets/sample.cbz';
 }
 
 function toggleReader() {
