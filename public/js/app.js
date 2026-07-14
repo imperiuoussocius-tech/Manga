@@ -1,62 +1,5 @@
 const state = { filter: 'all', selectedSlug: null, catalog: [], readerOpen: false, activeChapter: null };
 
-function buildLocalCatalog() {
-  return [
-    {
-      title: 'Solo Leveling',
-      slug: 'solo-leveling',
-      kind: 'manhwa',
-      source: 'Local demo',
-      description: 'A polished sample title with an onsite reader and CBZ-style download.',
-      cover: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80',
-      url: 'https://www.webtoons.com/en/fantasy/solo-leveling/list?title_no=1',
-      chapters: [
-        { id: 'chapter-001', title: 'Chapter 001', url: 'https://www.webtoons.com/en/fantasy/solo-leveling/list?title_no=1' },
-        { id: 'chapter-002', title: 'Chapter 002', url: 'https://www.webtoons.com/en/fantasy/solo-leveling/list?title_no=1' }
-      ]
-    },
-    {
-      title: 'One Piece',
-      slug: 'one-piece',
-      kind: 'manga',
-      source: 'Local demo',
-      description: 'Classic adventure manga in a lightweight GitHub Pages-friendly layout.',
-      cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80',
-      url: 'https://www.viz.com/shonenjump/chapters/one-piece',
-      chapters: [
-        { id: 'chapter-001', title: 'Chapter 001', url: 'https://www.viz.com/shonenjump/chapters/one-piece' },
-        { id: 'chapter-002', title: 'Chapter 002', url: 'https://www.viz.com/shonenjump/chapters/one-piece' }
-      ]
-    },
-    {
-      title: 'The Beginning After the End',
-      slug: 'the-beginning-after-the-end',
-      kind: 'manhua',
-      source: 'Local demo',
-      description: 'A fantasy title that demonstrates the same reader experience on GitHub Pages.',
-      cover: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80',
-      url: 'https://www.webtoons.com/en/fantasy/the-beginning-after-the-end/list?title_no=1',
-      chapters: [
-        { id: 'chapter-001', title: 'Chapter 001', url: 'https://www.webtoons.com/en/fantasy/the-beginning-after-the-end/list?title_no=1' },
-        { id: 'chapter-002', title: 'Chapter 002', url: 'https://www.webtoons.com/en/fantasy/the-beginning-after-the-end/list?title_no=1' }
-      ]
-    }
-  ];
-}
-
-function createPageSvg(title, chapterTitle, pageNumber) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1350"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="42%" dominant-baseline="middle" text-anchor="middle" font-size="38" fill="#f8fafc">${title}</text><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="#94a3b8">${chapterTitle}</text><text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#d4af37">Page ${pageNumber}</text></svg>`;
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-}
-
-function buildStaticImages(entry, chapterId) {
-  const chapter = entry.chapters.find((item) => item.id === chapterId) || entry.chapters[0];
-  return [1, 2, 3, 4].map((pageNumber) => ({
-    src: createPageSvg(entry.title, chapter.title, pageNumber),
-    alt: `${entry.title} ${chapter.title} page ${pageNumber}`
-  }));
-}
-
 function setLoading(active, message = 'Summoning the latest chapters...') {
   const screen = document.getElementById('loadingScreen');
   const label = document.getElementById('loadingLabel');
@@ -131,7 +74,7 @@ function renderDetail(entry) {
 async function loadCatalog() {
   const query = document.getElementById('searchInput').value;
   const remoteData = await fetchJson(`/api/catalog?query=${encodeURIComponent(query)}&source=${state.filter}`);
-  const baseCatalog = remoteData?.catalog || buildLocalCatalog();
+  const baseCatalog = remoteData?.catalog || [];
   const needle = query.toLowerCase();
   state.catalog = baseCatalog.filter((entry) => {
     const matchesQuery = !needle || [entry.title, entry.description, entry.kind].join(' ').toLowerCase().includes(needle);
@@ -163,16 +106,16 @@ async function loadChapterImages(slug, chapterId) {
   } catch (error) {
     console.warn('Unable to load chapter images', error);
   }
-  const fallbackEntry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
-  if (fallbackEntry) {
-    renderImages(buildStaticImages(fallbackEntry, chapterId));
-  }
   setLoading(false);
 }
 
 async function selectEntry(slug) {
   state.selectedSlug = slug;
-  const entry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
+  const entry = state.catalog.find((item) => item.slug === slug);
+  if (!entry) {
+    document.getElementById('statusText').textContent = 'Selected title is unavailable in the current catalog.';
+    return;
+  }
   renderDetail(entry);
   await loadChapterImages(slug, entry.chapters[0]?.id || 'chapter-001');
 }
@@ -211,7 +154,7 @@ async function exportZip() {
     window.location.href = remoteResult.downloadUrl;
     return;
   }
-  window.location.href = '/public/assets/sample.cbz';
+  alert('Export failed. Please try refreshing the catalog and selecting a chapter again.');
 }
 
 function toggleReader() {
