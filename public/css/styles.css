@@ -1,0 +1,39 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #050816;
+  color: #f8fafc;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(circle, #0f172a 0%, #020617 90%); min-height: 100vh; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+.hero { padding: 4rem 1.5rem 2rem; }
+.hero__content { max-width: 1100px; margin: 0 auto; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.3em; color: #38bdf8; font-size: 0.8rem; }
+h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 0.3rem 0 0.8rem; max-width: 800px; }
+.hero__copy { max-width: 700px; color: #cbd5e1; line-height: 1.6; }
+.hero__actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.4rem; }
+.hero__actions button, .hero__actions input, .reader__header button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.2rem;
+}
+.hero__actions button, .reader__header button { background: linear-gradient(135deg, #38bdf8, #818cf8); color: white; }
+.hero__actions input { background: rgba(15, 23, 42, 0.9); color: white; border: 1px solid rgba(148, 163, 184, 0.25); min-width: min(260px, 90vw); }
+.hero__filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
+.filter { border: 0; padding: 0.55rem 0.9rem; border-radius: 999px; background: rgba(15, 23, 42, 0.85); color: #e2e8f0; }
+.filter.active { background: #38bdf8; color: #020617; }
+.layout { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 1.25rem; padding: 0 1.5rem 2rem; max-width: 1320px; margin: 0 auto; }
+.card { background: rgba(2, 6, 23, 0.8); border: 1px solid rgba(148, 163, 184, 0.16); padding: 1.25rem; border-radius: 24px; backdrop-filter: blur(16px); }
+.catalog, .chapterList, .imageGrid { display: grid; gap: 0.8rem; margin-top: 1rem; }
+.catalog__item, .chapter__item { background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(148, 163, 184, 0.16); border-radius: 16px; padding: 0.9rem; }
+.catalog__item:hover, .chapter__item:hover { border-color: #38bdf8; }
+.catalog__item button, .chapter__item button { background: transparent; color: white; border: 0; padding: 0; text-align: left; width: 100%; }
+.catalog__meta { font-size: 0.8rem; color: #94a3b8; margin-top: 0.35rem; }
+.reader__header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.detailBody { margin-top: 1rem; line-height: 1.7; color: #cbd5e1; }
+.imageGrid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.imageGrid img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.16); }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }

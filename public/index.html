@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ENT — Manga, Manhwa, Manhua</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">ENT • automated discovery engine</p>
+        <h1>Fetch new manga, manhwa, and manhua chapters in one place.</h1>
+        <p class="hero__copy">A polished, deployable reader experience with refreshable catalog data, chapter pages, and ZIP exports.</p>
+        <div class="hero__actions">
+          <button id="refreshButton">Refresh catalog</button>
+          <input id="searchInput" type="search" placeholder="Search titles, genres, or keywords" />
+        </div>
+        <div class="hero__filters">
+          <button class="filter active" data-filter="all">All</button>
+          <button class="filter" data-filter="manga">Manga</button>
+          <button class="filter" data-filter="manhwa">Manhwa</button>
+          <button class="filter" data-filter="manhua">Manhua</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="sidebar">
+        <div class="card">
+          <h2>Live catalog</h2>
+          <p id="statusText">Preparing your first refresh…</p>
+          <div id="catalog" class="catalog"></div>
+        </div>
+      </section>
+
+      <section class="reader">
+        <div class="card">
+          <div class="reader__header">
+            <div>
+              <p class="eyebrow">Selected title</p>
+              <h2 id="detailTitle">Choose a title</h2>
+            </div>
+            <button id="exportButton" disabled>Export ZIP</button>
+          </div>
+          <div id="detailBody" class="detailBody">The catalog will populate here with metadata, chapters, and reader content.</div>
+          <div id="chapterList" class="chapterList"></div>
+          <div id="imageGrid" class="imageGrid"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+  </body>
+</html>

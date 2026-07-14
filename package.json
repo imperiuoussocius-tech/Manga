@@ -1,0 +1,15 @@
+{
+  "name": "ent-site",
+  "version": "1.0.0",
+  "description": "ENT - manga, manhwa, and manhua discovery and reader site",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "cheerio": "^1.1.0",
+    "express": "^4.19.0"
+  }
+}
