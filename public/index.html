@@ -43,6 +43,7 @@
             </div>
             <button id="exportButton" disabled>Export ZIP</button>
           </div>
+          <div id="detailHero" class="detailHero"></div>
           <div id="detailBody" class="detailBody">The catalog will populate here with metadata, chapters, and reader content.</div>
           <div id="readerToolbar" class="readerToolbar">
             <button id="readerModeButton">Open onsite reader</button>
@@ -54,6 +55,11 @@
         </div>
       </section>
     </main>
+
+    <div id="loadingScreen" class="loadingScreen" aria-live="polite">
+      <div class="loadingScreen__orb"></div>
+      <p id="loadingLabel">Summoning the latest chapters...</p>
+    </div>
 
     <script src="/js/app.js"></script>
   </body>

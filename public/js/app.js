@@ -45,7 +45,7 @@ function buildLocalCatalog() {
 }
 
 function createPageSvg(title, chapterTitle, pageNumber) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1350"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="42%" dominant-baseline="middle" text-anchor="middle" font-size="38" fill="#f8fafc">${title}</text><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="#94a3b8">${chapterTitle}</text><text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#38bdf8">Page ${pageNumber}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1350"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="42%" dominant-baseline="middle" text-anchor="middle" font-size="38" fill="#f8fafc">${title}</text><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="#94a3b8">${chapterTitle}</text><text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#d4af37">Page ${pageNumber}</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -55,6 +55,15 @@ function buildStaticImages(entry, chapterId) {
     src: createPageSvg(entry.title, chapter.title, pageNumber),
     alt: `${entry.title} ${chapter.title} page ${pageNumber}`
   }));
+}
+
+function setLoading(active, message = 'Summoning the latest chapters...') {
+  const screen = document.getElementById('loadingScreen');
+  const label = document.getElementById('loadingLabel');
+  if (!screen || !label) return;
+  label.textContent = message;
+  screen.classList.toggle('active', active);
+  document.body.classList.toggle('loading', active);
 }
 
 async function fetchJson(url, options = {}) {
@@ -75,21 +84,33 @@ function renderCatalog(items) {
   }
 
   catalog.innerHTML = items.map((item) => `
-    <div class="catalog__item">
-      <button data-slug="${item.slug}">
-        <strong>${item.title}</strong>
-        <div class="catalog__meta">${item.kind} • ${item.source}</div>
-      </button>
-    </div>
+    <article class="catalog__item">
+      <img class="catalog__cover" src="${item.cover || 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=900&q=80'}" alt="${item.title} cover" />
+      <div class="catalog__body">
+        <button data-slug="${item.slug}">
+          <strong>${item.title}</strong>
+          <div class="catalog__meta">${item.kind} • ${item.source}</div>
+        </button>
+        <p>${item.description}</p>
+      </div>
+    </article>
   `).join('');
 }
 
 function renderDetail(entry) {
+  const detailHero = document.getElementById('detailHero');
   document.getElementById('detailTitle').textContent = entry.title;
+  detailHero.style.borderColor = entry.highlight || '#d4af37';
+  detailHero.innerHTML = `
+    <img class="detail__cover" src="${entry.cover}" alt="${entry.title} cover" />
+    <div class="detail__content">
+      <p class="eyebrow">${entry.kind.toUpperCase()}</p>
+      <p>${entry.description}</p>
+      <p><a href="${entry.url}" target="_blank">Open source</a></p>
+    </div>
+  `;
   document.getElementById('detailBody').innerHTML = `
-    <p><strong>${entry.kind.toUpperCase()}</strong></p>
-    <p>${entry.description}</p>
-    <p><a href="${entry.url}" target="_blank">Open source</a></p>
+    <p class="detail__summary">New chapters and fresh cover art refresh every three days.</p>
   `;
   document.getElementById('exportButton').disabled = false;
   document.getElementById('exportButton').dataset.slug = entry.slug;
@@ -126,12 +147,34 @@ async function loadCatalog() {
   }
 }
 
+async function loadChapterImages(slug, chapterId) {
+  const loadingLabel = document.getElementById('loadingLabel');
+  if (loadingLabel) {
+    loadingLabel.textContent = 'Fetching chapter pages...';
+  }
+  setLoading(true, 'Fetching chapter pages...');
+  try {
+    const payload = await fetchJson(`/api/chapter/${encodeURIComponent(slug)}/${encodeURIComponent(chapterId)}`);
+    if (payload?.images?.length) {
+      renderImages(payload.images);
+      setLoading(false);
+      return;
+    }
+  } catch (error) {
+    console.warn('Unable to load chapter images', error);
+  }
+  const fallbackEntry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
+  if (fallbackEntry) {
+    renderImages(buildStaticImages(fallbackEntry, chapterId));
+  }
+  setLoading(false);
+}
+
 async function selectEntry(slug) {
   state.selectedSlug = slug;
   const entry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
   renderDetail(entry);
-  const images = buildStaticImages(entry, entry.chapters[0]?.id || 'chapter-001');
-  renderImages(images);
+  await loadChapterImages(slug, entry.chapters[0]?.id || 'chapter-001');
 }
 
 function renderImages(images) {
@@ -145,13 +188,13 @@ async function openChapter(slug, chapterId) {
   state.activeChapter = chapterId;
   document.getElementById('exportButton').dataset.chapter = chapterId;
   document.getElementById('downloadButton').dataset.chapter = chapterId;
-  const entry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
-  renderImages(buildStaticImages(entry, chapterId));
+  await loadChapterImages(slug, chapterId);
 }
 
 async function refreshCatalog() {
   const status = document.getElementById('statusText');
-  status.textContent = 'Using the built-in demo catalog for GitHub Pages.';
+  status.textContent = 'Refreshing the catalog and chapter pages now.';
+  await fetchJson('/api/refresh', { method: 'POST' });
   await loadCatalog();
 }
 
@@ -205,4 +248,5 @@ document.getElementById('readerModeButton').addEventListener('click', toggleRead
 
 loadCatalog().catch(() => {
   document.getElementById('statusText').textContent = 'Unable to load the demo catalog.';
+  setLoading(false);
 });
