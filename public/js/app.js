@@ -1,9 +1,70 @@
 const state = { filter: 'all', selectedSlug: null, catalog: [], readerOpen: false, activeChapter: null };
 
+function buildLocalCatalog() {
+  return [
+    {
+      title: 'Solo Leveling',
+      slug: 'solo-leveling',
+      kind: 'manhwa',
+      source: 'Local demo',
+      description: 'A polished sample title with an onsite reader and CBZ-style download.',
+      cover: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80',
+      url: 'https://example.com/solo-leveling',
+      chapters: [
+        { id: 'chapter-001', title: 'Chapter 001', url: 'https://example.com/solo-leveling/chapter-001' },
+        { id: 'chapter-002', title: 'Chapter 002', url: 'https://example.com/solo-leveling/chapter-002' }
+      ]
+    },
+    {
+      title: 'One Piece',
+      slug: 'one-piece',
+      kind: 'manga',
+      source: 'Local demo',
+      description: 'Classic adventure manga in a lightweight GitHub Pages-friendly layout.',
+      cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80',
+      url: 'https://example.com/one-piece',
+      chapters: [
+        { id: 'chapter-001', title: 'Chapter 001', url: 'https://example.com/one-piece/chapter-001' },
+        { id: 'chapter-002', title: 'Chapter 002', url: 'https://example.com/one-piece/chapter-002' }
+      ]
+    },
+    {
+      title: 'The Beginning After the End',
+      slug: 'the-beginning-after-the-end',
+      kind: 'manhua',
+      source: 'Local demo',
+      description: 'A fantasy title that demonstrates the same reader experience on GitHub Pages.',
+      cover: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=900&q=80',
+      url: 'https://example.com/the-beginning-after-the-end',
+      chapters: [
+        { id: 'chapter-001', title: 'Chapter 001', url: 'https://example.com/the-beginning-after-the-end/chapter-001' },
+        { id: 'chapter-002', title: 'Chapter 002', url: 'https://example.com/the-beginning-after-the-end/chapter-002' }
+      ]
+    }
+  ];
+}
+
+function createPageSvg(title, chapterTitle, pageNumber) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1350"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="42%" dominant-baseline="middle" text-anchor="middle" font-size="38" fill="#f8fafc">${title}</text><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-size="24" fill="#94a3b8">${chapterTitle}</text><text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#38bdf8">Page ${pageNumber}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function buildStaticImages(entry, chapterId) {
+  const chapter = entry.chapters.find((item) => item.id === chapterId) || entry.chapters[0];
+  return [1, 2, 3, 4].map((pageNumber) => ({
+    src: createPageSvg(entry.title, chapter.title, pageNumber),
+    alt: `${entry.title} ${chapter.title} page ${pageNumber}`
+  }));
+}
+
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-  return response.json();
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+    return response.json();
+  } catch (error) {
+    return null;
+  }
 }
 
 function renderCatalog(items) {
@@ -48,8 +109,14 @@ function renderDetail(entry) {
 
 async function loadCatalog() {
   const query = document.getElementById('searchInput').value;
-  const data = await fetchJson(`/api/catalog?query=${encodeURIComponent(query)}&source=${state.filter}`);
-  state.catalog = data.catalog;
+  const remoteData = await fetchJson(`/api/catalog?query=${encodeURIComponent(query)}&source=${state.filter}`);
+  const baseCatalog = remoteData?.catalog || buildLocalCatalog();
+  const needle = query.toLowerCase();
+  state.catalog = baseCatalog.filter((entry) => {
+    const matchesQuery = !needle || [entry.title, entry.description, entry.kind].join(' ').toLowerCase().includes(needle);
+    const matchesSource = state.filter === 'all' || entry.kind === state.filter;
+    return matchesQuery && matchesSource;
+  });
   renderCatalog(state.catalog);
   if (state.selectedSlug) {
     const selected = state.catalog.find((entry) => entry.slug === state.selectedSlug);
@@ -61,10 +128,10 @@ async function loadCatalog() {
 
 async function selectEntry(slug) {
   state.selectedSlug = slug;
-  const entry = state.catalog.find((item) => item.slug === slug) || await fetchJson(`/api/catalog/${slug}`);
+  const entry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
   renderDetail(entry);
-  const data = await fetchJson(`/api/chapter/${entry.slug}/${entry.chapters[0]?.id || 'chapter-001'}`);
-  renderImages(data.images);
+  const images = buildStaticImages(entry, entry.chapters[0]?.id || 'chapter-001');
+  renderImages(images);
 }
 
 function renderImages(images) {
@@ -78,15 +145,13 @@ async function openChapter(slug, chapterId) {
   state.activeChapter = chapterId;
   document.getElementById('exportButton').dataset.chapter = chapterId;
   document.getElementById('downloadButton').dataset.chapter = chapterId;
-  const data = await fetchJson(`/api/chapter/${slug}/${chapterId}`);
-  renderImages(data.images);
+  const entry = state.catalog.find((item) => item.slug === slug) || buildLocalCatalog().find((item) => item.slug === slug);
+  renderImages(buildStaticImages(entry, chapterId));
 }
 
 async function refreshCatalog() {
   const status = document.getElementById('statusText');
-  status.textContent = 'Refreshing catalog…';
-  const result = await fetchJson('/api/refresh', { method: 'POST' });
-  status.textContent = `Catalog refreshed with ${result.count} entries.`;
+  status.textContent = 'Using the built-in demo catalog for GitHub Pages.';
   await loadCatalog();
 }
 
@@ -94,12 +159,16 @@ async function exportZip() {
   const button = document.getElementById('exportButton');
   const slug = button.dataset.slug;
   const chapter = button.dataset.chapter;
-  const result = await fetchJson('/api/export', {
+  const remoteResult = await fetchJson('/api/export', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ slug, chapter })
   });
-  window.location.href = result.downloadUrl;
+  if (remoteResult?.downloadUrl) {
+    window.location.href = remoteResult.downloadUrl;
+    return;
+  }
+  window.location.href = '/assets/sample.cbz';
 }
 
 function toggleReader() {
@@ -134,6 +203,6 @@ document.getElementById('exportButton').addEventListener('click', exportZip);
 document.getElementById('downloadButton').addEventListener('click', exportZip);
 document.getElementById('readerModeButton').addEventListener('click', toggleReader);
 
-loadCatalog().catch((error) => {
-  document.getElementById('statusText').textContent = error.message;
+loadCatalog().catch(() => {
+  document.getElementById('statusText').textContent = 'Unable to load the demo catalog.';
 });

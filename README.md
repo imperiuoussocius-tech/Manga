@@ -23,6 +23,7 @@ Then open http://localhost:3000.
 
 The archive generated for distribution is `ent-site.zip`.
 
+For GitHub Pages hosting, see [GITHUB_PAGES.md](GITHUB_PAGES.md).
 For full deployment steps, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Container deployment
